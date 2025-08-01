@@ -25,13 +25,13 @@ class DataTransformer:
         """生成绑定码，格式: YYYYMMDDHHMMSSxxxxxxxxx (20位)"""
         # 时间戳部分 (14位): YYYYMMDDHHMMSS
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        
+
         # 随机数部分 (6位)
         random_part = ''.join(random.choices(string.digits, k=6))
-        
+
         # 组合成20位bind_code
         bind_code = timestamp + random_part
-        
+
         return bind_code
 
     @staticmethod

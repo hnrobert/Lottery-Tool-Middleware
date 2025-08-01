@@ -83,8 +83,8 @@ case $ACTION in
         echo "▶️  启动服务（Alpine Linux）..."
         docker-compose -f "$COMPOSE_FILE" up -d
         echo "✅ 服务已启动"
-        echo "🌐 访问地址: http://localhost:8000"
-        echo "📊 健康检查: http://localhost:8000/health"
+        echo "🌐 访问地址: http://localhost:9732"
+        echo "📊 健康检查: http://localhost:9732/health"
         ;;
     "down")
         echo "⏹️  停止服务..."

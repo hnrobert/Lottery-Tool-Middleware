@@ -45,5 +45,5 @@ export PYTHONPATH="$PROJECT_ROOT/src:$PYTHONPATH"
 
 # 启动服务
 echo "正在启动FastAPI服务器..."
-echo "服务将在 http://localhost:8000 启动"
+echo "服务将在 http://localhost:9732 启动"
 python src/main.py

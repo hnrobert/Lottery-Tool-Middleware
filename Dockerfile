@@ -27,14 +27,14 @@ RUN adduser -D -s /bin/sh app \
 USER app
 
 # 暴露端口
-EXPOSE 8000
+EXPOSE 9732
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')"
+    CMD python -c "import requests; requests.get('http://localhost:9732/health')"
 
 # 设置Python路径
 ENV PYTHONPATH=/app/src
 
 # 启动命令
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "9732"]

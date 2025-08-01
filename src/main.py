@@ -143,7 +143,7 @@ async def handle_jinshan_webhook(
 
         # 生成绑定码并立即返回
         bind_code = DataTransformer.generate_bind_code()
-        
+
         return JSONResponse(
             status_code=200,
             content={"bind_code": bind_code}

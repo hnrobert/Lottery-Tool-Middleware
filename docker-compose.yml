@@ -5,14 +5,14 @@ services:
       dockerfile: ${DOCKERFILE:-Dockerfile}
     container_name: lottery-webhook-middleware
     ports:
-      - "8000:8000"
+      - "9732:9732"
     environment:
       - LOTTERY_WEBHOOK_URL=${LOTTERY_WEBHOOK_URL:-http://localhost:3000/api/webhook/activities/4189b01d72abbf9f381cb207953ba936/lottery-codes}
       - LOTTERY_WEBHOOK_TOKEN=${LOTTERY_WEBHOOK_TOKEN:-32d8bf0f194814531e4ee739a30c17ffc1012d8a3a0fa19e7e1fddf4d8cbc362}
       - POWER_AUTOMATE_WEBHOOK_URL=${POWER_AUTOMATE_WEBHOOK_URL}
       - ACTIVITY_ID=${ACTIVITY_ID:-4189b01d72abbf9f381cb207953ba936}
       - HOST=0.0.0.0
-      - PORT=8000
+      - PORT=9732
       - DEBUG=false
       - PYTHONPATH=/app/src
     volumes:
@@ -25,7 +25,7 @@ services:
           "CMD",
           "python",
           "-c",
-          "import requests; requests.get('http://localhost:8000/health')",
+          "import requests; requests.get('http://localhost:9732/health')",
         ]
       interval: 30s
       timeout: 10s
