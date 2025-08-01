@@ -2,6 +2,8 @@ from models import JinshanWebhookData, LotteryWebhookPayload, LotteryCode, Parti
 from datetime import datetime
 from typing import Dict, Any, Optional
 import logging
+import random
+import string
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +19,20 @@ class DataTransformer:
         "email": {"qid": "30f4xe", "title": "UNNC邮箱｜UNNC Email"},
         "phone": {"qid": "7wpvum", "title": "手机号｜Telephone Number"},
     }
+
+    @staticmethod
+    def generate_bind_code() -> str:
+        """生成绑定码，格式: YYYYMMDDHHMMSSxxxxxxxxx (20位)"""
+        # 时间戳部分 (14位): YYYYMMDDHHMMSS
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        
+        # 随机数部分 (6位)
+        random_part = ''.join(random.choices(string.digits, k=6))
+        
+        # 组合成20位bind_code
+        bind_code = timestamp + random_part
+        
+        return bind_code
 
     @staticmethod
     def extract_field_value(answer_contents: list, qid: str) -> Any:

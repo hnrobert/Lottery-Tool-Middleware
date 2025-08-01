@@ -141,17 +141,12 @@ async def handle_jinshan_webhook(
         background_tasks.add_task(
             process_webhooks, lottery_payload, power_automate_payload)
 
-        # 立即返回成功响应
+        # 生成绑定码并立即返回
+        bind_code = DataTransformer.generate_bind_code()
+        
         return JSONResponse(
             status_code=200,
-            content={
-                "message": "Webhook已接收，正在后台处理",
-                "form_id": jinshan_data.formId,
-                "student_id": DataTransformer.extract_field_value(
-                    [content.dict() for content in jinshan_data.answerContents],
-                    DataTransformer.FIELD_MAPPING["student_id"]["qid"]
-                )
-            }
+            content={"bind_code": bind_code}
         )
 
     except Exception as e:
@@ -191,7 +186,7 @@ if __name__ == "__main__":
     import uvicorn
 
     host = os.getenv("HOST", "0.0.0.0")
-    port = int(os.getenv("PORT", 8000))
+    port = int(os.getenv("PORT", 9732))
     debug = os.getenv("DEBUG", "True").lower() == "true"
 
     logger.info(f"启动服务器: {host}:{port}, Debug: {debug}")
