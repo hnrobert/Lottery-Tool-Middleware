@@ -1,0 +1,66 @@
+# Git相关
+.git
+.gitignore
+.gitattributes
+
+# Python相关
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+.venv
+.env.local
+.env.*.local
+
+# 测试和覆盖率
+.pytest_cache
+.coverage
+htmlcov
+.tox
+.nox
+
+# 编辑器和IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+.tmp
+.temp
+*.tmp
+*.temp
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 文档（在容器中不需要）
+README.md
+DEPLOYMENT.md
+USAGE.md
+*.md
+
+# Docker相关
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# 脚本（容器中不需要）
+scripts/
+
+# Node.js相关（如果有）
+node_modules
+npm-debug.log
+
+# 开发工具配置
+.prettierrc
+.eslintrc
+.editorconfig

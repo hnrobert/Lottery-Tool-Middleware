@@ -1,0 +1,60 @@
+services:
+  lottery-middleware:
+    build:
+      context: .
+      dockerfile: ${DOCKERFILE:-Dockerfile}
+    container_name: lottery-webhook-middleware
+    ports:
+      - "8000:8000"
+    environment:
+      - LOTTERY_WEBHOOK_URL=${LOTTERY_WEBHOOK_URL:-http://localhost:3000/api/webhook/activities/4189b01d72abbf9f381cb207953ba936/lottery-codes}
+      - LOTTERY_WEBHOOK_TOKEN=${LOTTERY_WEBHOOK_TOKEN:-32d8bf0f194814531e4ee739a30c17ffc1012d8a3a0fa19e7e1fddf4d8cbc362}
+      - POWER_AUTOMATE_WEBHOOK_URL=${POWER_AUTOMATE_WEBHOOK_URL}
+      - ACTIVITY_ID=${ACTIVITY_ID:-4189b01d72abbf9f381cb207953ba936}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+      - PYTHONPATH=/app/src
+    volumes:
+      - ./logs:/app/logs
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import requests; requests.get('http://localhost:8000/health')",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - lottery-network
+
+  # 可选：添加反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: lottery-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - lottery-middleware
+    restart: unless-stopped
+    networks:
+      - lottery-network
+    profiles:
+      - production
+
+networks:
+  lottery-network:
+    driver: bridge
+
+volumes:
+  logs:

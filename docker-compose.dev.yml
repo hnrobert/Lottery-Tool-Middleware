@@ -1,0 +1,41 @@
+services:
+  lottery-middleware-dev:
+    build:
+      context: .
+      dockerfile: ${DOCKERFILE:-Dockerfile}
+    container_name: lottery-webhook-middleware-dev
+    ports:
+      - "8000:8000"
+    environment:
+      - LOTTERY_WEBHOOK_URL=${LOTTERY_WEBHOOK_URL:-http://localhost:3000/api/webhook/activities/4189b01d72abbf9f381cb207953ba936/lottery-codes}
+      - LOTTERY_WEBHOOK_TOKEN=${LOTTERY_WEBHOOK_TOKEN:-32d8bf0f194814531e4ee739a30c17ffc1012d8a3a0fa19e7e1fddf4d8cbc362}
+      - POWER_AUTOMATE_WEBHOOK_URL=${POWER_AUTOMATE_WEBHOOK_URL}
+      - ACTIVITY_ID=${ACTIVITY_ID:-4189b01d72abbf9f381cb207953ba936}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=true
+      - PYTHONPATH=/app/src
+    volumes:
+      - ./src:/app/src:rw
+      - ./logs:/app/logs
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+    command:
+      [
+        "uvicorn",
+        "src.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload",
+      ]
+    networks:
+      - lottery-dev-network
+
+networks:
+  lottery-dev-network:
+    driver: bridge
+
+volumes:
+  logs:
