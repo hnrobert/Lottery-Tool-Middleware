@@ -1,6 +1,8 @@
-import requests
 import logging
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
+import requests
+
 from models import LotteryWebhookPayload, PowerAutomatePayload
 
 logger = logging.getLogger(__name__)

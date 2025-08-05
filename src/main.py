@@ -1,11 +1,12 @@
-from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+import asyncio
 import logging
 import os
+from typing import Any, Dict
+
 from dotenv import load_dotenv
-import asyncio
-from typing import Dict, Any
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from models import JinshanWebhookData
 from transformer import DataTransformer
@@ -158,7 +159,7 @@ async def handle_jinshan_webhook(
 async def test_lottery_webhook(test_data: Dict[str, Any]):
     """测试抽奖系统webhook连接"""
     try:
-        from models import LotteryWebhookPayload, LotteryCode, ParticipantInfo
+        from models import LotteryCode, LotteryWebhookPayload, ParticipantInfo
 
         # 创建测试数据
         test_lottery_payload = LotteryWebhookPayload(
