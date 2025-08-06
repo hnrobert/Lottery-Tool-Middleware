@@ -30,13 +30,9 @@ class ParticipantInfo(BaseModel):
     email: str
 
 
-class LotteryCode(BaseModel):
+class LotteryWebhookPayload(BaseModel):
     code: str
     participant_info: ParticipantInfo
-
-
-class LotteryWebhookPayload(BaseModel):
-    lottery_codes: List[LotteryCode]
 
 
 class PowerAutomatePayload(BaseModel):

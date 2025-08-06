@@ -4,7 +4,7 @@ import string
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from models import (JinshanWebhookData, LotteryCode, LotteryWebhookPayload,
+from models import (JinshanWebhookData, LotteryWebhookPayload,
                     ParticipantInfo, PowerAutomatePayload)
 
 logger = logging.getLogger(__name__)
@@ -88,15 +88,9 @@ class DataTransformer:
                 email=str(email)
             )
 
-            # 构建抽奖码对象
-            lottery_code_obj = LotteryCode(
+            lottery_payload = LotteryWebhookPayload(
                 code=lottery_code,
                 participant_info=participant_info
-            )
-
-            # 构建最终的抽奖系统载荷
-            lottery_payload = LotteryWebhookPayload(
-                lottery_codes=[lottery_code_obj]
             )
 
             logger.info(f"成功转换数据为抽奖格式，学号: {student_id}, 姓名: {name}")

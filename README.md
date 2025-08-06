@@ -39,9 +39,10 @@ Lottery-Tool-Middleware/
 
 📚 **推荐阅读顺序：**
 
-1. 📖 [快速部署指南](QUICK_START.md) - 选择适合的部署方式
-2. 📋 [使用指南](USAGE.md) - 了解如何使用和测试
-3. 🚀 [部署和运维指南](DEPLOYMENT.md) - 生产环境部署详情
+1. 📖 [快速部署指南](docs/QUICK_START.md) - 选择适合的部署方式
+2. 📋 [使用指南](docs/USAGE.md) - 了解如何使用和测试
+3. 🔥 [API 接口文档](docs/API.md) - 详细的接口格式和示例
+4. 🚀 [部署和运维指南](docs/DEPLOYMENT.md) - 生产环境部署详情
 
 ### 最快上手方式
 
@@ -67,7 +68,7 @@ pip install -r requirements.txt
 export PYTHONPATH="$PWD/src:$PYTHONPATH"
 python src/main.py
 
-### 方式2: Docker 部署（推荐生产环境）
+### 方式 2: Docker 部署（推荐生产环境）
 
 #### 开发环境
 
@@ -170,16 +171,12 @@ docker-compose --profile production up -d
 
 ```json
 {
-  "lottery_codes": [
-    {
-      "code": "20808382",
-      "participant_info": {
-        "name": "曹宇宸",
-        "phone": "18740036416",
-        "email": "scxyc5@nottingham.edu.cn"
-      }
-    }
-  ]
+  "code": "83483923",
+  "participant_info": {
+    "name": "测试用户",
+    "phone": "18021553069",
+    "email": "jwui2v67@nottingham.edu.cn"
+  }
 }
 ```
 

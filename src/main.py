@@ -159,20 +159,16 @@ async def handle_jinshan_webhook(
 async def test_lottery_webhook(test_data: Dict[str, Any]):
     """测试抽奖系统webhook连接"""
     try:
-        from models import LotteryCode, LotteryWebhookPayload, ParticipantInfo
+        from models import LotteryWebhookPayload, ParticipantInfo
 
-        # 创建测试数据
+        # 创建测试数据 - 使用新的单对象格式
         test_lottery_payload = LotteryWebhookPayload(
-            lottery_codes=[
-                LotteryCode(
-                    code=test_data.get("code", "TEST123"),
-                    participant_info=ParticipantInfo(
-                        name=test_data.get("name", "测试用户"),
-                        phone=test_data.get("phone", "13800138000"),
-                        email=test_data.get("email", "test@example.com")
-                    )
-                )
-            ]
+            code=test_data.get("code", "TEST123"),
+            participant_info=ParticipantInfo(
+                name=test_data.get("name", "测试用户"),
+                phone=test_data.get("phone", "13800138000"),
+                email=test_data.get("email", "test@example.com")
+            )
         )
 
         result = await webhook_client.send_to_lottery_system(test_lottery_payload)
