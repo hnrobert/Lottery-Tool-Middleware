@@ -137,6 +137,37 @@
 }
 ```
 
+### 5. Power Automate 测试
+
+**POST** `/test/power-automate`
+
+测试 Power Automate 连接状态。
+
+**请求格式：**
+
+```json
+{
+  "name": "测试用户",
+  "email": "test@example.com"
+}
+```
+
+**响应示例：**
+
+```json
+{
+  "test_result": {
+    "success": true,
+    "status_code": 200,
+    "response": "{\"status\":\"success\"}",
+    "sent_data": {
+      "name": "测试用户",
+      "email": "test@example.com"
+    }
+  }
+}
+```
+
 ## 发送到抽奖系统的数据格式
 
 中间件会将金山表单数据转换为以下格式发送到抽奖系统：
@@ -201,7 +232,7 @@
 确保配置以下环境变量：
 
 ```bash
-# 抽奖系统配置
+# 抽奖系统配置（必需）
 LOTTERY_WEBHOOK_URL=http://localhost:3000/api/webhook/activities/4189b01d72abbf9f381cb207953ba936/lottery-codes
 LOTTERY_WEBHOOK_TOKEN=your-auth-token
 
@@ -226,75 +257,24 @@ DEBUG=true
 | 邮箱   | 30f4xe | UNNC 邮箱｜ UNNC Email    |
 | 手机号 | 7wpvum | 手机号｜ Telephone Number |
 
-## 使用示例
+## 快速测试
 
-### 测试完整流程
+详细的测试方法和故障排除请参考 [使用指南](USAGE.md)。
+
+基本验证命令：
 
 ```bash
-# 1. 健康检查
+# 健康检查
 curl http://localhost:9732/health
 
-# 2. 测试抽奖系统连接
+# 抽奖系统测试
 curl -X POST http://localhost:9732/test/lottery \
   -H "Content-Type: application/json" \
-  -d '{
-    "code": "TEST123",
-    "name": "测试用户",
-    "phone": "13800138000",
-    "email": "test@unnc.edu.cn"
-  }'
-
-# 3. 模拟金山表单 webhook
-curl -X POST http://localhost:9732/webhook/jinshan \
-  -H "Content-Type: application/json" \
-  -d '{
-    "rid": "test_rid_001",
-    "formId": "test_form_123",
-    "formTitle": "测试抽奖报名表",
-    "aid": "test_answer_456",
-    "eventTs": 1722844800000,
-    "messageTs": 1722844800000,
-    "creatorId": "test_creator",
-    "creatorName": "测试创建者",
-    "event": "create_answer",
-    "version": 1,
-    "answerContents": [
-      {
-        "qid": "k9ce0p",
-        "type": "text",
-        "title": "姓名｜Name",
-        "value": "张三"
-      },
-      {
-        "qid": "br1kvx",
-        "type": "text",
-        "title": "学号｜Student ID",
-        "value": "2023001"
-      },
-      {
-        "qid": "wdfqio",
-        "type": "text",
-        "title": "性别 | Gender",
-        "value": "男"
-      },
-      {
-        "qid": "30f4xe",
-        "type": "email",
-        "title": "UNNC邮箱｜UNNC Email",
-        "value": "zhangsan@unnc.edu.cn"
-      },
-      {
-        "qid": "7wpvum",
-        "type": "phone",
-        "title": "手机号｜Telephone Number",
-        "value": "13800138000"
-      }
-    ]
-  }'
+  -d '{"code": "TEST123", "name": "测试用户", "phone": "13800138000", "email": "test@unnc.edu.cn"}'
 ```
 
 ## 日志和监控
 
-- 服务日志会记录到 `middleware.log` 文件
-- 所有 webhook 处理过程都会记录详细日志
-- 可以通过 Docker 查看容器日志：`docker logs lottery-webhook-middleware-dev`
+- 服务日志：`middleware.log` 文件
+- 容器日志：`docker logs lottery-webhook-middleware-dev`
+- 详细部署和监控指南：[部署运维文档](DEPLOYMENT.md)

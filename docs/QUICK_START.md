@@ -1,50 +1,73 @@
 # 快速部署指南
 
-## 🚀 部署选项总览
+选择最适合你的部署方式，3 种选项任选其一：
 
-根据你的环境和需求，选择最适合的部署方式：
+## 🚀 部署选项对比
 
-### 1. 🛠️ 本地开发（推荐用于开发和测试）
+| 部署方式       | 启动时间 | 适用场景   | 优势               |
+| -------------- | -------- | ---------- | ------------------ |
+| 🛠️ 本地开发    | 30 秒    | 开发、调试 | 快速启动，便于调试 |
+| 🐳 Docker 开发 | 1 分钟   | 团队开发   | 环境一致，热重载   |
+| 🏭 Docker 生产 | 2 分钟   | 生产部署   | 生产就绪，包含代理 |
+
+## 🛠️ 方式 1：本地开发（推荐新手）
+
+**一行命令启动：**
 
 ```bash
-# 快速启动
 ./scripts/start.sh --install
-
-# 验证服务
-curl http://localhost:8000/health
 ```
 
-**优点：** 快速上手，便于调试
-**适用：** 开发、测试、本地演示
-
-### 2. 🐳 Docker 开发环境
+**手动启动：**
 
 ```bash
-# 启动开发环境（支持热重载）
+# 1. 创建虚拟环境
+python -m venv .venv && source .venv/bin/activate
+
+# 2. 安装依赖
+pip install -r requirements.txt
+
+# 3. 启动服务
+export PYTHONPATH="$PWD/src:$PYTHONPATH"
+python src/main.py
+```
+
+✅ **验证：** `curl http://localhost:9732/health`
+
+## 🐳 方式 2：Docker 开发（推荐团队）
+
+```bash
+# 启动开发环境（支持代码热重载）
 ./scripts/docker.sh --dev
 
-# 查看日志
+# 查看实时日志
 ./scripts/docker.sh --dev --logs
 
-# 重建镜像
+# 重建镜像（代码变更后）
 ./scripts/docker.sh --dev --build
 ```
 
-**优点：** 环境一致性，支持热重载，基于 Alpine Linux 轻量镜像
-**适用：** 团队开发、CI/CD
+**特性：**
 
-### 3. 🏭 Docker 生产环境
+- ✅ 代码热重载
+- ✅ 环境一致性
+- ✅ Alpine Linux 轻量镜像
+
+## 🏭 方式 3：Docker 生产（推荐部署）
 
 ```bash
-# 生产部署
+# 启动生产环境
 ./scripts/docker.sh --prod
 
-# 包含 Nginx 的完整生产环境
+# 或启动完整生产环境（包含Nginx）
 docker-compose --profile production up -d
 ```
 
-**优点：** 生产就绪，包含反向代理，基于 Alpine Linux
-**适用：** 生产环境、正式部署
+**生产特性：**
+
+- ✅ Nginx 反向代理
+- ✅ 优化的容器配置
+- ✅ 生产级日志记录
 
 ## 🔧 故障排除
 

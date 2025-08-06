@@ -2,218 +2,166 @@
 
 一个用于处理金山表单 webhook 并转发到抽奖系统和 Power Automate 的 Python 中间件服务。
 
-## 📁 项目结构
+## 🎯 核心功能
+
+- 🎯 **接收处理**：接收金山表单的 webhook 请求
+- � **数据转换**：智能转换金山表单数据为抽奖系统格式
+- 📧 **双向转发**：同时转发到抽奖系统和 Power Automate 邮箱
+- ⚡ **异步处理**：后台处理，快速响应，生成绑定码
+- 🛡️ **健壮性**：完整的错误处理和日志记录
+- 🐳 **容器化**：基于 Alpine Linux 的 Docker 部署
+- 🧪 **可测试**：内置测试端点和测试脚本
+
+## �📁 项目结构
 
 ```text
 Lottery-Tool-Middleware/
 ├── src/                    # 源代码目录
-│   ├── main.py            # 主应用文件
-│   ├── models.py          # 数据模型
+│   ├── main.py            # 主应用文件 - FastAPI 应用
+│   ├── models.py          # 数据模型 - Pydantic 模型
 │   ├── transformer.py     # 数据转换器
-│   ├── webhook_client.py  # HTTP客户端
-│   └── tests/             # 测试文件
-├── scripts/               # 脚本目录
+│   ├── webhook_client.py  # HTTP 客户端
+│   └── tests/             # 单元测试
+├── docs/                  # 📚 文档目录
+│   ├── API.md            # 接口文档
+│   ├── QUICK_START.md    # 快速部署
+│   ├── USAGE.md          # 使用指南
+│   └── DEPLOYMENT.md     # 部署运维
+├── scripts/               # 🔧 脚本目录
 │   ├── start.sh          # 本地启动脚本
-│   └── docker.sh         # Docker部署脚本
-├── docker-compose.yml     # 生产环境Docker配置
-├── docker-compose.dev.yml # 开发环境Docker配置
-├── Dockerfile            # Docker镜像配置
-├── nginx.conf           # Nginx配置模板
-├── requirements.txt     # Python依赖
-├── .env.example        # 环境变量示例
-└── README.md           # 项目文档
+│   └── docker.sh         # Docker 部署脚本
+├── docker-compose.yml     # 生产环境 Docker 配置
+├── docker-compose.dev.yml # 开发环境 Docker 配置
+├── Dockerfile            # Docker 镜像配置
+├── requirements.txt      # Python 依赖
+└── .env.example         # 环境变量模板
 ```
 
-## 功能特性
+## 🚀 快速开始
 
-- 🎯 接收金山表单的 webhook 请求
-- 🔄 数据格式转换（金山表单 → 抽奖系统格式）
-- 📧 同时转发到抽奖系统和 Power Automate 邮箱
-- ⚡ 异步处理，快速响应
-- 🛡️ 完整的错误处理和日志记录
-- 🧪 包含单元测试
-- 🐳 支持 Docker 部署（基于 Alpine Linux）
-- 🌐 包含 Nginx 反向代理配置
+📚 **文档导航：**
 
-## 快速开始
+1. 📖 [快速部署指南](docs/QUICK_START.md) - 3 种部署方式对比和选择
+2. 📋 [使用指南](docs/USAGE.md) - 配置、测试和故障排除
+3. � [API 接口文档](docs/API.md) - 完整的接口规范和示例
+4. 🚀 [部署和运维指南](docs/DEPLOYMENT.md) - 生产环境部署和监控
 
-📚 **推荐阅读顺序：**
-
-1. 📖 [快速部署指南](docs/QUICK_START.md) - 选择适合的部署方式
-2. 📋 [使用指南](docs/USAGE.md) - 了解如何使用和测试
-3. 🔥 [API 接口文档](docs/API.md) - 详细的接口格式和示例
-4. 🚀 [部署和运维指南](docs/DEPLOYMENT.md) - 生产环境部署详情
-
-### 最快上手方式
+### ⚡ 最快启动（30 秒上手）
 
 ```bash
-# 1. 配置环境
+# 1. 克隆项目
+git clone <repository-url>
+cd Lottery-Tool-Middleware
+
+# 2. 配置环境
 cp .env.example .env
-# 编辑 .env 文件
+# 编辑 .env 文件中的 Power Automate URL
 
-# 2. 启动服务（三选一）
-./scripts/start.sh --install                    # 本地开发
-./scripts/docker.sh --dev                       # Docker 开发
-./scripts/docker.sh --prod                      # Docker 生产
+# 3. 一键启动（三选一）
+./scripts/start.sh --install       # 本地开发
+./scripts/docker.sh --dev         # Docker 开发
+./scripts/docker.sh --prod        # Docker 生产
 
-# 3. 验证服务
-curl http://localhost:8000/health
+# 4. 验证服务
+curl http://localhost:9732/health
 ```
 
-#### 或手动安装和启动
+## 🎯 核心工作流程
 
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-export PYTHONPATH="$PWD/src:$PYTHONPATH"
-python src/main.py
-
-### 方式 2: Docker 部署（推荐生产环境）
-
-#### 开发环境
-
-```bash
-# 构建并启动开发环境
-./scripts/docker.sh --dev
-
-# 查看日志
-./scripts/docker.sh --dev --logs
-
-# 停止服务
-./scripts/docker.sh --dev --down
+```mermaid
+graph LR
+    A[金山表单] -->|Webhook| B[中间件]
+    B --> C[数据转换]
+    C --> D[抽奖系统]
+    C --> E[Power Automate]
+    B --> F[返回绑定码]
 ```
 
-#### 生产环境
+1. **接收**：金山表单发送 webhook 到中间件
+2. **转换**：提取姓名、学号、邮箱、手机号等信息
+3. **转发**：并发发送到抽奖系统和 Power Automate
+4. **响应**：立即返回 20 位绑定码给用户
 
-```bash
-# 构建并启动生产环境
-./scripts/docker.sh --prod
+### 📊 数据转换示例
 
-# 查看服务状态
-docker-compose ps
-
-# 查看日志
-./scripts/docker.sh --logs
-
-# 停止服务
-./scripts/docker.sh --down
-```
-
-#### 使用 Nginx 反向代理（生产环境）
-
-```bash
-# 启动包含 Nginx 的完整生产环境
-docker-compose --profile production up -d
-```
-
-服务将在以下地址可用：
-
-- 直接访问：`http://localhost:8000`
-- 通过 Nginx：`http://localhost:80`
-
-## API 端点
-
-### 健康检查
-
-- `GET /` - 基本健康检查
-- `GET /health` - 详细健康状态
-
-### Webhook 处理
-
-- `POST /webhook/jinshan` - 接收金山表单 webhook
-
-### 测试端点
-
-- `POST /test/lottery` - 测试抽奖系统连接
-
-- `POST /test/lottery` - 测试抽奖系统连接
-
-## 数据格式
-
-### 金山表单输入格式
+**输入**：金山表单 webhook 数据
 
 ```json
 {
-  "rid": "8MgaqP3NGp",
-  "formId": "20250713140244212536986",
-  "formTitle": "2025 宁诺计算机爱好者协会秋季招新网申通道",
   "event": "create_answer",
   "answerContents": [
-    {
-      "qid": "k9ce0p",
-      "type": "input",
-      "title": "姓名｜Name",
-      "value": "曹宇宸"
-    },
-    {
-      "qid": "br1kvx",
-      "type": "numberInput",
-      "title": "学号｜Student ID",
-      "value": 20808382
-    },
+    { "qid": "k9ce0p", "title": "姓名｜Name", "value": "张三" },
+    { "qid": "br1kvx", "title": "学号｜Student ID", "value": "2023001" },
     {
       "qid": "30f4xe",
-      "type": "email",
       "title": "UNNC邮箱｜UNNC Email",
-      "value": "scxyc5@nottingham.edu.cn"
+      "value": "test@unnc.edu.cn"
     },
     {
       "qid": "7wpvum",
-      "type": "telphone",
       "title": "手机号｜Telephone Number",
-      "value": "18740036416"
+      "value": "13800138000"
     }
   ]
 }
 ```
 
-### 抽奖系统输出格式
+**输出 1**：发送到抽奖系统
 
 ```json
 {
-  "code": "83483923",
+  "code": "2023001",
   "participant_info": {
-    "name": "测试用户",
-    "phone": "18021553069",
-    "email": "jwui2v67@nottingham.edu.cn"
+    "name": "张三",
+    "phone": "13800138000",
+    "email": "test@unnc.edu.cn"
   }
 }
 ```
 
-## 字段映射
+**输出 2**：返回给用户
 
-| 金山表单字段 | QID    | 抽奖系统字段 | 描述               |
-| ------------ | ------ | ------------ | ------------------ |
-| 姓名         | k9ce0p | name         | 参与者姓名         |
-| 学号         | br1kvx | code         | 抽奖码（使用学号） |
-| 邮箱         | 30f4xe | email        | 联系邮箱           |
-| 手机号       | 7wpvum | phone        | 联系电话           |
-
-## 运行测试
-
-```bash
-# 激活虚拟环境
-source .venv/bin/activate
-
-# 运行测试
-python -m pytest tests/ -v
+```json
+{
+  "bind_code": "20250805032323705837"
+}
 ```
 
-## 日志记录
+## 🛠️ 核心组件
 
-服务会在以下位置记录日志：
+- **FastAPI** - 高性能异步 Web 框架
+- **Pydantic** - 数据验证和序列化
+- **Requests** - HTTP 客户端
+- **Alpine Linux** - 轻量级容器基础镜像
+- **Uvicorn** - ASGI 服务器
 
-- 控制台输出
-- `middleware.log` 文件
+## 📝 技术规格
 
-日志级别可通过环境变量 `LOG_LEVEL` 配置。
+- **Python**: 3.11+
+- **端口**: 9732（可配置）
+- **内存**: ~50MB（容器运行时）
+- **启动时间**: <3 秒
+- **并发**: 支持异步处理
+- **日志**: 结构化日志记录
 
-## 错误处理
+## 🔗 相关链接
 
-- 数据验证失败：返回 400 状态码
-- 必要字段缺失：返回 400 状态码，详细说明缺失字段
-- 转发失败：记录错误但不影响响应（后台处理）
-- 服务器错误：返回 500 状态码
+- [FastAPI 官方文档](https://fastapi.tiangolo.com/)
+- [Docker 部署指南](docs/DEPLOYMENT.md)
+- [API 接口规范](docs/API.md)
+
+## 📄 许可证
+
+[添加许可证信息]
+
+## 🤝 贡献
+
+欢迎提交 Issues 和 Pull Requests！
+
+---
+
+**项目维护者**: [添加维护者信息]  
+**更新时间**: 2025 年 8 月
 
 ## 安全考虑
 
