@@ -84,3 +84,36 @@ class WebhookClient:
                 "error": str(e),
                 "status_code": getattr(e.response, 'status_code', None) if hasattr(e, 'response') else None
             }
+
+    async def send_to_power_automate_simple(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """发送简化数据到Power Automate（仅包含name和email）"""
+        if not self.power_automate_url:
+            logger.warning("Power Automate URL未配置，跳过发送")
+            return {"success": False, "error": "Power Automate URL未配置"}
+
+        try:
+            logger.info(f"发送简化数据到Power Automate: {payload}")
+            response = self.session.post(
+                self.power_automate_url,
+                json=payload,
+                timeout=30
+            )
+
+            response.raise_for_status()
+
+            logger.info(f"成功发送到Power Automate，状态码: {response.status_code}")
+            return {
+                "success": True,
+                "status_code": response.status_code,
+                "response": response.text,
+                "sent_data": payload
+            }
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"发送到Power Automate失败: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "status_code": getattr(e.response, 'status_code', None) if hasattr(e, 'response') else None,
+                "sent_data": payload
+            }

@@ -155,6 +155,23 @@ async def handle_jinshan_webhook(
         raise HTTPException(status_code=500, detail=f"处理失败: {str(e)}")
 
 
+@app.post("/test/power-automate")
+async def test_power_automate_webhook(test_data: Dict[str, Any]):
+    """测试Power Automate webhook连接"""
+    try:
+        simple_payload = {
+            "name": test_data.get("name", "测试用户"),
+            "email": test_data.get("email", "test@example.com")
+        }
+
+        result = await webhook_client.send_to_power_automate_simple(simple_payload)
+        return {"test_result": result}
+
+    except Exception as e:
+        logger.error(f"测试Power Automate失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"测试失败: {str(e)}")
+
+
 @app.post("/test/lottery")
 async def test_lottery_webhook(test_data: Dict[str, Any]):
     """测试抽奖系统webhook连接"""
