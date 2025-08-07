@@ -24,7 +24,8 @@ class WebhookClient:
 
         # 设置请求头
         self.session.headers.update(
-            {"Content-Type": "application/json", "User-Agent": "Lottery-Middleware/1.0"}
+            {"Content-Type": "application/json",
+                "User-Agent": "Lottery-Middleware/1.0"}
         )
 
     async def send_to_lottery_system(

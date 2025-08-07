@@ -143,7 +143,8 @@ async def handle_jinshan_webhook(
 
         # 数据转换
         try:
-            lottery_payload = DataTransformer.transform_to_lottery_format(jinshan_data)
+            lottery_payload = DataTransformer.transform_to_lottery_format(
+                jinshan_data)
             power_automate_payload = DataTransformer.transform_to_power_automate_format(
                 jinshan_data
             )

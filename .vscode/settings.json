@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "aquasecurity",
+        "autopep",
         "bpzfk",
         "Buildx",
         "dotenv",
@@ -23,6 +24,6 @@
         "xxxxxxxxx"
     ],
     "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter"
+        "editor.defaultFormatter": "ms-python.autopep8"
     }
 }

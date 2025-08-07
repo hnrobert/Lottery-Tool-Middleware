@@ -4,12 +4,8 @@ import string
 from datetime import datetime
 from typing import Any
 
-from models import (
-    JinshanWebhookData,
-    LotteryWebhookPayload,
-    ParticipantInfo,
-    PowerAutomatePayload,
-)
+from models import (JinshanWebhookData, LotteryWebhookPayload, ParticipantInfo,
+                    PowerAutomatePayload)
 
 logger = logging.getLogger(__name__)
 
