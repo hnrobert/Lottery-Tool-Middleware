@@ -1,9 +1,8 @@
 services:
   lottery-middleware:
-    build:
-      context: .
-      dockerfile: ${DOCKERFILE:-Dockerfile}
+    image: ghcr.io/hnrobert/lottery-tool-middleware:latest
     container_name: lottery-webhook-middleware
+    restart: unless-stopped
     ports:
       - "9732:9732"
     environment:
@@ -18,7 +17,6 @@ services:
     volumes:
       - ./logs:/app/logs
       - ./.env:/app/.env:ro
-    restart: unless-stopped
     healthcheck:
       test:
         [

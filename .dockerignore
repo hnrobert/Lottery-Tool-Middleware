@@ -2,6 +2,7 @@
 .git
 .gitignore
 .gitattributes
+.github/
 
 # Python相关
 __pycache__

@@ -1,5 +1,9 @@
 # 抽奖系统 Webhook 中间件
 
+[![CI Tests](https://github.com/HNRobert/Lottery-Tool-Middleware/workflows/CI%20Tests%20and%20Quality%20Checks/badge.svg)](https://github.com/HNRobert/Lottery-Tool-Middleware/actions/workflows/ci-tests.yml)
+[![Docker Build](https://github.com/HNRobert/Lottery-Tool-Middleware/workflows/Docker%20Build%20and%20Push/badge.svg)](https://github.com/HNRobert/Lottery-Tool-Middleware/actions/workflows/docker-build-and-push.yml)
+[![GHCR](https://img.shields.io/badge/ghcr.io-hnrobert%2Flottery--tool--middleware-blue)](https://github.com/HNRobert/Lottery-Tool-Middleware/pkgs/container/lottery-tool-middleware)
+
 一个用于处理金山表单 webhook 并转发到抽奖系统和 Power Automate 的 Python 中间件服务。
 
 ## 🎯 核心功能
