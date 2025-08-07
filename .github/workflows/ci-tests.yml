@@ -31,20 +31,33 @@ jobs:
           pip install flake8 black isort
 
       - name: 代码格式检查 (Black)
+        continue-on-error: true
         run: |
-          black --check --diff src/
+          black --check --diff src/ || echo "black failed" >> result.log
 
       - name: 导入排序检查 (isort)
+        continue-on-error: true
         run: |
-          isort --check-only --diff src/
+          isort --check-only --diff src/ || echo "isort failed" >> result.log
 
       - name: 代码风格检查 (Flake8)
+        continue-on-error: true
         run: |
-          flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 src/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics || echo "flake8 strict failed" >> result.log
+          flake8 src/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics || echo "flake8 loose failed" >> result.log
 
       - name: 类型检查
         continue-on-error: true
         run: |
           pip install mypy
-          mypy src/ --ignore-missing-imports || echo "类型检查完成（允许警告）"
+          mypy src/ --ignore-missing-imports || echo "mypy failed" >> result.log
+
+      - name: 检查所有结果
+        run: |
+          if [ -f result.log ]; then
+            echo "有步骤失败："
+            cat result.log
+            exit 1
+          else
+            echo "所有检查通过"
+          fi
