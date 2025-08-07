@@ -37,6 +37,7 @@ class LotteryWebhookPayload(BaseModel):
 
 class PowerAutomatePayload(BaseModel):
     """Power Automate 邮箱数据格式"""
+
     name: str
     student_id: str
     gender: str
