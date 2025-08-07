@@ -1,0 +1,142 @@
+name: Docker Build and Push
+
+on:
+  # 当推送到 main 分支时触发
+  push:
+    branches:
+      - main
+    # 当推送标签时触发（用于版本发布）
+    tags:
+      - "v*"
+
+  # 当创建 Pull Request 到 main 分支时触发（仅构建，不推送）
+  pull_request:
+    branches:
+      - main
+
+  # 允许手动触发
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "自定义标签 (可选)"
+        required: false
+        default: ""
+
+env:
+  # GitHub Container Registry 相关配置
+  GHCR_REGISTRY: ghcr.io
+  GHCR_IMAGE_NAME: hnrobert/lottery-tool-middleware
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 登录到 GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.GHCR_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 生成元数据
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}
+          tags: |
+            # 为分支设置标签
+            type=ref,event=branch
+            # 为 PR 设置标签
+            type=ref,event=pr
+            # 为标签设置版本号
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            # 为 main 分支设置 latest 标签
+            type=raw,value=latest,enable={{is_default_branch}}
+            # 自定义标签（手动触发时）
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
+          labels: |
+            org.opencontainers.image.title=Lottery Tool Middleware
+            org.opencontainers.image.description=抽奖系统 Webhook 中间件
+            org.opencontainers.image.url=https://github.com/${{ github.repository }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: 构建和推送 Docker 镜像
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 输出镜像信息
+        run: |
+          echo "## 🐳 Docker 镜像构建完成" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 镜像信息" >> $GITHUB_STEP_SUMMARY
+          echo "- **镜像标签**: \`${{ steps.meta.outputs.tags }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Git提交**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 使用方法" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "# 从 GitHub Container Registry 拉取" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  # 安全扫描作业
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: 运行 Trivy 漏洞扫描
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}:latest
+          format: "sarif"
+          output: "trivy-results.sarif"
+
+      - name: 上传 Trivy 扫描结果到 GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-results.sarif"
+
+  # 部署通知作业（可选）
+  notify:
+    runs-on: ubuntu-latest
+    needs: [build-and-push, security-scan]
+    if: always() && github.event_name != 'pull_request'
+
+    steps:
+      - name: 发送部署通知
+        run: |
+          echo "🎉 Docker 镜像构建完成！"
+          echo "📦 镜像已发布到："
+          echo "  - GitHub Container Registry: ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}"
+
+          if [ "${{ needs.build-and-push.result }}" = "success" ] && [ "${{ needs.security-scan.result }}" = "success" ]; then
+            echo "✅ 所有检查通过，镜像已成功发布"
+          else
+            echo "❌ 部分检查失败，请查看详细日志"
+          fi

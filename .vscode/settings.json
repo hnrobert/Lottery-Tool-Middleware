@@ -1,19 +1,29 @@
 {
     "cSpell.words": [
+        "aquasecurity",
+        "autopep",
         "bpzfk",
+        "Buildx",
         "dotenv",
         "fastapi",
         "healthcheck",
+        "isort",
         "jinshan",
         "levelname",
         "Mgaq",
+        "mypy",
+        "opencontainers",
         "pytest",
         "PYTHONPATH",
+        "sarif",
         "telphone",
         "uvicorn",
         "venv",
         "wdfqio",
         "wpvum",
         "xxxxxxxxx"
-    ]
+    ],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.autopep8"
+    }
 }

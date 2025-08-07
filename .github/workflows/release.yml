@@ -1,0 +1,242 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "版本号 (例如: v1.0.0)"
+        required: true
+        type: string
+      create_release:
+        description: "是否创建 GitHub Release"
+        required: true
+        type: boolean
+        default: true
+
+env:
+  GHCR_REGISTRY: ghcr.io
+  GHCR_IMAGE_NAME: hnrobert/lottery-tool-middleware
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置版本号
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION=${{ github.event.release.tag_name }}
+          else
+            VERSION=${{ github.event.inputs.version }}
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
+
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 登录到 GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.GHCR_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 生成发布元数据
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value=${{ steps.version.outputs.version }}
+            type=raw,value=${{ steps.version.outputs.version_number }}
+            type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.version }}
+            type=semver,pattern={{major}},value=${{ steps.version.outputs.version }}
+          labels: |
+            org.opencontainers.image.title=Lottery Tool Middleware
+            org.opencontainers.image.description=抽奖系统 Webhook 中间件
+            org.opencontainers.image.url=https://github.com/${{ github.repository }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ steps.version.outputs.version_number }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: 构建和推送发布镜像
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 创建 GitHub Release (手动触发时)
+        if: github.event.inputs.create_release == 'true' && github.event_name == 'workflow_dispatch'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          release_name: Release ${{ steps.version.outputs.version }}
+          body: |
+            ## 🎉 版本发布 ${{ steps.version.outputs.version }}
+
+            ### 📦 Docker 镜像
+
+            ```bash
+            # GitHub Container Registry
+            docker pull ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}:${{ steps.version.outputs.version_number }}
+            ```
+
+            ### 🚀 快速部署
+
+            ```bash
+            # 使用 docker-compose
+            curl -o docker-compose.yml https://raw.githubusercontent.com/${{ github.repository }}/${{ steps.version.outputs.version }}/docker-compose.yml
+            docker-compose up -d
+            ```
+
+            ### 📋 更新日志
+
+            - 发布版本 ${{ steps.version.outputs.version }}
+            - Git提交: ${{ github.sha }}
+            - 构建日期: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+
+            ---
+
+            *此版本通过 GitHub Actions 自动构建和发布*
+          draft: false
+          prerelease: false
+
+      - name: 生成部署清单
+        run: |
+          mkdir -p release-assets
+
+          # 创建 docker-compose 部署文件
+          cat > release-assets/docker-compose.yml << EOF
+          version: '3.8'
+
+          services:
+            lottery-middleware:
+              image: ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}:${{ steps.version.outputs.version_number }}
+              container_name: lottery-middleware
+              restart: unless-stopped
+              ports:
+                - "9732:9732"
+              environment:
+                - LOTTERY_WEBHOOK_URL=\${LOTTERY_WEBHOOK_URL}
+                - POWER_AUTOMATE_WEBHOOK_URL=\${POWER_AUTOMATE_WEBHOOK_URL}
+                - LOG_LEVEL=INFO
+              volumes:
+                - ./logs:/app/logs
+              healthcheck:
+                test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:9732/health')"]
+                interval: 30s
+                timeout: 10s
+                retries: 3
+                start_period: 40s
+          EOF
+
+          # 创建环境变量模板
+          cat > release-assets/.env.example << EOF
+          # 抽奖系统 Webhook URL
+          LOTTERY_WEBHOOK_URL=https://your-lottery-system.com/api/webhook
+
+          # Power Automate Webhook URL
+          POWER_AUTOMATE_WEBHOOK_URL=https://prod-xx.westus.logic.azure.com:443/workflows/xxx/triggers/manual/paths/invoke
+
+          # 日志级别 (DEBUG, INFO, WARNING, ERROR)
+          LOG_LEVEL=INFO
+          EOF
+
+          # 创建部署脚本
+          cat > release-assets/deploy.sh << 'EOF'
+          #!/bin/bash
+
+          set -e
+
+          echo "🚀 部署抽奖系统 Webhook 中间件 ${{ steps.version.outputs.version }}"
+
+          # 检查 Docker 和 docker-compose
+          if ! command -v docker &> /dev/null; then
+              echo "❌ 请先安装 Docker"
+              exit 1
+          fi
+
+          if ! command -v docker-compose &> /dev/null; then
+              echo "❌ 请先安装 docker-compose"
+              exit 1
+          fi
+
+          # 创建必要目录
+          mkdir -p logs
+
+          # 检查环境变量文件
+          if [ ! -f ".env" ]; then
+              if [ -f ".env.example" ]; then
+                  echo "📝 请配置环境变量文件："
+                  echo "cp .env.example .env"
+                  echo "然后编辑 .env 文件设置正确的 Webhook URL"
+                  exit 1
+              else
+                  echo "❌ 未找到 .env.example 文件"
+                  exit 1
+              fi
+          fi
+
+          # 拉取最新镜像
+          echo "📦 拉取 Docker 镜像..."
+          docker-compose pull
+
+          # 启动服务
+          echo "🔄 启动服务..."
+          docker-compose up -d
+
+          # 等待服务启动
+          echo "⏳ 等待服务启动..."
+          sleep 10
+
+          # 检查服务状态
+          if docker-compose ps | grep -q "Up"; then
+              echo "✅ 服务启动成功！"
+              echo "🌐 服务地址: http://localhost:9732"
+              echo "❤️  健康检查: http://localhost:9732/health"
+              echo "📋 查看日志: docker-compose logs -f"
+          else
+              echo "❌ 服务启动失败，请查看日志："
+              docker-compose logs
+              exit 1
+          fi
+          EOF
+
+          chmod +x release-assets/deploy.sh
+
+      - name: 输出发布信息
+        run: |
+          echo "## 🎉 版本 ${{ steps.version.outputs.version }} 发布成功" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Docker 镜像" >> $GITHUB_STEP_SUMMARY
+          echo "- **GitHub Container Registry**: \`${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}:${{ steps.version.outputs.version_number }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Git提交**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 快速部署" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "docker run -d -p 9732:9732 \\" >> $GITHUB_STEP_SUMMARY
+          echo "  -e LOTTERY_WEBHOOK_URL=your_url \\" >> $GITHUB_STEP_SUMMARY
+          echo "  -e POWER_AUTOMATE_WEBHOOK_URL=your_url \\" >> $GITHUB_STEP_SUMMARY
+          echo "  ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}:${{ steps.version.outputs.version_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

@@ -2,10 +2,10 @@ import logging
 import random
 import string
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
-from models import (JinshanWebhookData, LotteryWebhookPayload,
-                    ParticipantInfo, PowerAutomatePayload)
+from models import (JinshanWebhookData, LotteryWebhookPayload, ParticipantInfo,
+                    PowerAutomatePayload)
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class DataTransformer:
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 
         # 随机数部分 (6位)
-        random_part = ''.join(random.choices(string.digits, k=6))
+        random_part = "".join(random.choices(string.digits, k=6))
 
         # 组合成20位bind_code
         bind_code = timestamp + random_part
@@ -49,21 +49,28 @@ class DataTransformer:
         return None
 
     @classmethod
-    def transform_to_lottery_format(cls, jinshan_data: JinshanWebhookData) -> LotteryWebhookPayload:
+    def transform_to_lottery_format(
+        cls, jinshan_data: JinshanWebhookData
+    ) -> LotteryWebhookPayload:
         """将金山表单数据转换为抽奖系统格式"""
         try:
-            answer_contents = [content.dict()
-                               for content in jinshan_data.answerContents]
+            answer_contents = [
+                content.dict() for content in jinshan_data.answerContents
+            ]
 
             # 提取必要字段
             name = cls.extract_field_value(
-                answer_contents, cls.FIELD_MAPPING["name"]["qid"])
+                answer_contents, cls.FIELD_MAPPING["name"]["qid"]
+            )
             student_id = cls.extract_field_value(
-                answer_contents, cls.FIELD_MAPPING["student_id"]["qid"])
+                answer_contents, cls.FIELD_MAPPING["student_id"]["qid"]
+            )
             phone = cls.extract_field_value(
-                answer_contents, cls.FIELD_MAPPING["phone"]["qid"])
+                answer_contents, cls.FIELD_MAPPING["phone"]["qid"]
+            )
             email = cls.extract_field_value(
-                answer_contents, cls.FIELD_MAPPING["email"]["qid"])
+                answer_contents, cls.FIELD_MAPPING["email"]["qid"]
+            )
 
             # 验证必要字段
             if not all([name, student_id, phone, email]):
@@ -83,14 +90,11 @@ class DataTransformer:
 
             # 构建参与者信息
             participant_info = ParticipantInfo(
-                name=str(name),
-                phone=str(phone),
-                email=str(email)
+                name=str(name), phone=str(phone), email=str(email)
             )
 
             lottery_payload = LotteryWebhookPayload(
-                code=lottery_code,
-                participant_info=participant_info
+                code=lottery_code, participant_info=participant_info
             )
 
             logger.info(f"成功转换数据为抽奖格式，学号: {student_id}, 姓名: {name}")
@@ -101,27 +105,36 @@ class DataTransformer:
             raise
 
     @classmethod
-    def transform_to_power_automate_format(cls, jinshan_data: JinshanWebhookData) -> PowerAutomatePayload:
+    def transform_to_power_automate_format(
+        cls, jinshan_data: JinshanWebhookData
+    ) -> PowerAutomatePayload:
         """将金山表单数据转换为Power Automate格式"""
         try:
-            answer_contents = [content.dict()
-                               for content in jinshan_data.answerContents]
+            answer_contents = [
+                content.dict() for content in jinshan_data.answerContents
+            ]
 
             # 提取字段
             name = cls.extract_field_value(
-                answer_contents, cls.FIELD_MAPPING["name"]["qid"])
+                answer_contents, cls.FIELD_MAPPING["name"]["qid"]
+            )
             student_id = cls.extract_field_value(
-                answer_contents, cls.FIELD_MAPPING["student_id"]["qid"])
+                answer_contents, cls.FIELD_MAPPING["student_id"]["qid"]
+            )
             gender = cls.extract_field_value(
-                answer_contents, cls.FIELD_MAPPING["gender"]["qid"])
+                answer_contents, cls.FIELD_MAPPING["gender"]["qid"]
+            )
             email = cls.extract_field_value(
-                answer_contents, cls.FIELD_MAPPING["email"]["qid"])
+                answer_contents, cls.FIELD_MAPPING["email"]["qid"]
+            )
             phone = cls.extract_field_value(
-                answer_contents, cls.FIELD_MAPPING["phone"]["qid"])
+                answer_contents, cls.FIELD_MAPPING["phone"]["qid"]
+            )
 
             # 格式化提交时间
             submission_time = datetime.fromtimestamp(
-                jinshan_data.eventTs / 1000).isoformat()
+                jinshan_data.eventTs / 1000
+            ).isoformat()
 
             # 构建Power Automate载荷
             power_automate_payload = PowerAutomatePayload(
@@ -132,11 +145,12 @@ class DataTransformer:
                 phone=str(phone) if phone else "",
                 form_id=jinshan_data.formId,
                 submission_time=submission_time,
-                raw_data=jinshan_data.dict()
+                raw_data=jinshan_data.dict(),
             )
 
             logger.info(
-                f"成功转换数据为Power Automate格式，学号: {student_id}, 姓名: {name}")
+                f"成功转换数据为Power Automate格式，学号: {student_id}, 姓名: {name}"
+            )
             return power_automate_payload
 
         except Exception as e:

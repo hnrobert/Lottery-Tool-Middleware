@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from pydantic import BaseModel
 
@@ -37,6 +37,7 @@ class LotteryWebhookPayload(BaseModel):
 
 class PowerAutomatePayload(BaseModel):
     """Power Automate 邮箱数据格式"""
+
     name: str
     student_id: str
     gender: str
