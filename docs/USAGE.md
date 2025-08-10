@@ -19,6 +19,9 @@ nano .env  # 或使用你喜欢的编辑器
 LOTTERY_WEBHOOK_URL=http://your-lottery-system/api/webhook/activities/xxx/lottery-codes
 LOTTERY_WEBHOOK_TOKEN=your-auth-token
 
+# 绑定码配置（必填）
+BIND_CODE=20250805666666666666
+
 # 服务配置
 HOST=0.0.0.0
 PORT=9732
@@ -115,7 +118,7 @@ curl -X POST http://localhost:9732/webhook/jinshan \
 **期望响应：**
 
 ```json
-{ "bind_code": "20250805032323705837" }
+{ "bind_code": "20250805666666666666" }
 ```
 
 ## 📋 日志监控
