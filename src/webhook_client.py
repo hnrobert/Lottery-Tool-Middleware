@@ -38,8 +38,13 @@ class WebhookClient:
                 "Content-Type": "application/json",
             }
 
+            print({"lottery_codes": [payload.dict()]})
+
             response = self.session.post(
-                self.lottery_url, json=[payload.dict()], headers=headers, timeout=30
+                self.lottery_url,
+                json={"lottery_codes": [payload.dict()]},
+                headers=headers,
+                timeout=30
             )
 
             response.raise_for_status()
