@@ -43,9 +43,13 @@ app.add_middleware(
 LOTTERY_WEBHOOK_URL = os.getenv("LOTTERY_WEBHOOK_URL")
 LOTTERY_WEBHOOK_TOKEN = os.getenv("LOTTERY_WEBHOOK_TOKEN")
 POWER_AUTOMATE_WEBHOOK_URL = os.getenv("POWER_AUTOMATE_WEBHOOK_URL")
+BIND_CODE = os.getenv("BIND_CODE")
 
 if not LOTTERY_WEBHOOK_URL or not LOTTERY_WEBHOOK_TOKEN:
     raise ValueError("必须配置 LOTTERY_WEBHOOK_URL 和 LOTTERY_WEBHOOK_TOKEN")
+
+if not BIND_CODE:
+    raise ValueError("必须配置 BIND_CODE")
 
 # 初始化WebhookClient
 webhook_client = WebhookClient(
@@ -107,6 +111,7 @@ async def health_check():
         "status": "healthy",
         "lottery_url_configured": bool(LOTTERY_WEBHOOK_URL),
         "power_automate_url_configured": bool(POWER_AUTOMATE_WEBHOOK_URL),
+        "bind_code_configured": bool(BIND_CODE),
         "timestamp": logging.Formatter().format(
             logging.LogRecord(
                 name="health",
@@ -157,10 +162,8 @@ async def handle_jinshan_webhook(
             process_webhooks, lottery_payload, power_automate_payload
         )
 
-        # 生成绑定码并立即返回
-        bind_code = DataTransformer.generate_bind_code()
-
-        return JSONResponse(status_code=200, content={"bind_code": bind_code})
+        # 返回配置的绑定码
+        return JSONResponse(status_code=200, content={"bind_code": BIND_CODE})
 
     except Exception as e:
         logger.error(f"处理webhook失败: {str(e)}")

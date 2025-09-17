@@ -116,6 +116,7 @@ curl -X POST http://localhost:8000/test/lottery \
 ## 📋 配置检查清单
 
 - ✅ 复制并编辑 `.env` 文件
+- ✅ 配置 `BIND_CODE` 环境变量（必需）
 - ✅ 配置 `POWER_AUTOMATE_WEBHOOK_URL`（如需要）
 - ✅ 验证抽奖系统连接
 - ✅ 配置金山表单 webhook URL
