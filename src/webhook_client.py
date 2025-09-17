@@ -39,7 +39,7 @@ class WebhookClient:
             }
 
             response = self.session.post(
-                self.lottery_url, json=[payload], headers=headers, timeout=30
+                self.lottery_url, json=[payload.dict()], headers=headers, timeout=30
             )
 
             response.raise_for_status()
